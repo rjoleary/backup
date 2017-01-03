@@ -1,14 +1,18 @@
 #!/bin/bash
 set -e
 
-backup_path='/media/ryan/Backup'
+# Provision a directory as a new backup target. This script is idempotent
+# meaning it is also useful for re-provisioning a directory.
+# Usage: ./provision BACKUP_PATH
+
+BACKUP_PATH=${1-test}
+
+if [ ! -d "$BACKUP_PATH" ]; then
+    echo "\"$BACKUP_PATH\" is not a directory" >&2
+    exit 1
+fi
+
 # TODO: A better backup system would make each one of these lines part of their respective backup scripts.
-#       This would allow me to quickly check which items are included in a backup.
-[ -d $backup_path/Bitbucket ]     || mkdir $backup_path/Bitbucket
-[ -d $backup_path/Contacts ]      || mkdir $backup_path/Contacts
-[ -d $backup_path/Dropbox ]       || mkdir $backup_path/Dropbox
-[ -d $backup_path/Email ]         || mkdir $backup_path/Email
-[ -d $backup_path/Firefox ]       || mkdir $backup_path/Firefox
-[ -d $backup_path/Gists ]         || mkdir $backup_path/Gists
-[ -d $backup_path/GitHub ]        || mkdir $backup_path/GitHub
-[ -d $backup_path/Google\ Drive ] || mkdir $backup_path/Google\ Drive
+for FOLDER in bitbucket contacts dropbox email firefox gists github google_drive; do
+    [ -d "$BACKUP_PATH/$FOLDER" ] || mkdir "$BACKUP_PATH/$FOLDER"
+done
