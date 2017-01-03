@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
+#!/bin/bash
+set -e
 
 # Wait until the backup drive is mounted.
 until cat /proc/mounts | grep '/media/ryan/Backup'

@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
+#!/bin/bash
+set -e
 
 backup_path='/media/ryan/Backup'
 # TODO: A better backup system would make each one of these lines part of their respective backup scripts.

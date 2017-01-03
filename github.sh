@@ -1,4 +1,5 @@
-#/usr/bin/env sh
+#!/bin/bash
+set -e
 
 rm -R '/media/ryan/Backup/GitHub/'
 git clone --mirror 'https://github.com/rjoleary/dotfiles.git'             '/media/ryan/Backup/GitHub/dotfiles'
