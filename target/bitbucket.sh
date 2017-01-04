@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+BACKUP_PATH=${1-test}
+cd $BACKUP_PATH
+
 read -p "Username: " user
 read -sp "Password: " password
 
