@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+#TODO: automatically read repo list
+
 rm -R '/media/ryan/Backup/GitHub/'
 git clone --mirror 'https://github.com/rjoleary/dotfiles.git'             '/media/ryan/Backup/GitHub/dotfiles'
 git clone --mirror 'https://github.com/rjoleary/templates.git'            '/media/ryan/Backup/GitHub/templates'

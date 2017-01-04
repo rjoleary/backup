@@ -1,16 +1,8 @@
 #!/bin/bash
 set -e
 
-# Wait until the backup drive is mounted.
-until cat /proc/mounts | grep '/media/ryan/Backup'
-do
-    echo 'Mount the backup drive. Retrying in 5 mins...'
-    sleep 5m
-done
-
 # Wait until Firefox is closed.
-while pidof -s 'firefox'
-do
+while pidof -s 'firefox'; do
     echo 'Firefox profile cannot be copied while Firefox is running, so close Firefox.'
     exit 1
 done
