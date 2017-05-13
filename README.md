@@ -1,6 +1,7 @@
 # Backup
 
-Some friends were interested in how I do backups. Nothing special. Just a bunch of ad-hoc scripts.
+Some friends were interested in how I do backups. Nothing special. Just a bunch
+of ad-hoc scripts.
 
 Disk format: LUKS + EXT4
 Disk Name: Backup
