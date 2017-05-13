@@ -11,7 +11,8 @@ import (
     "path/filepath"
 )
 
-var sources = map[string]func(backupDir string){}
+type backupFunc func(backupDir string) error
+var sources = map[string]backupFunc{}
 
 var execCommand = exec.Command
 
@@ -52,6 +53,8 @@ func main() {
 	}
 
 	for _, t := range targets {
-		sources[t](filepath.Join(*backupRoot, t))
+        if err := sources[t](filepath.Join(*backupRoot, t)); err != nil {
+            log.Fatal(err)
+        }
 	}
 }

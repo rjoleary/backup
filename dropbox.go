@@ -10,7 +10,7 @@ func init() {
 	sources["dropbox"] = backupDropbox
 }
 
-func backupDropbox(backupPath string) {
+func backupDropbox(backupPath string) error {
 	// This script is an adaptation of:
 	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (
@@ -33,4 +33,6 @@ func backupDropbox(backupPath string) {
     // TODO:
 	//rm -f $backup_path/current
 	//ln -s $DATE $backup_path/current
+
+    return nil
 }
