@@ -2,16 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
-    "fmt"
-    "path/filepath"
 )
 
 type backupFunc func(backupDir string) error
+
 var sources = map[string]backupFunc{}
 
 var execCommand = exec.Command
@@ -25,17 +26,17 @@ func main() {
 	)
 	fs.Parse(os.Args[1:])
 
-    if *backupRoot == "" {
-        log.Fatal("error: no backup_root")
-    }
+	if *backupRoot == "" {
+		log.Fatal("error: no backup_root")
+	}
 
 	if *dryrun {
 		execCommand = func(cmd string, args ...string) *exec.Cmd {
-            line := make([]interface{}, len(args) + 1)
-            line[0] = cmd
-            for i := range args {
-                line[i+1] = args[i]
-            }
+			line := make([]interface{}, len(args)+1)
+			line[0] = cmd
+			for i := range args {
+				line[i+1] = args[i]
+			}
 			fmt.Println(line...)
 			return nil
 		}
@@ -53,8 +54,8 @@ func main() {
 	}
 
 	for _, t := range targets {
-        if err := sources[t](filepath.Join(*backupRoot, t)); err != nil {
-            log.Fatal(err)
-        }
+		if err := sources[t](filepath.Join(*backupRoot, t)); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
