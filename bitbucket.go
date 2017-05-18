@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -52,18 +55,42 @@ func backupBitbucket(backupPath string) error {
 		return fmt.Errorf("HTTP error: %s", resp.Status)
 	}
 
-	// Parse json
+	// Save repository index
+	indexPath := filepath.Join(backupPath, "index.json")
+	out := bytes.Buffer{}
+	if err := json.Indent(&out, body, "", "  "); err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(indexPath, out.Bytes(), os.ModePerm); err != nil {
+		return err
+	}
 
-	// Save repository list
-	fmt.Printf(string(body))
+	// Parse json
+	repos := []struct {
+		Scm   string `json:"scm"`
+		Owner string `json:"owner"`
+		Slug  string `json:"slug"`
+	}{}
+	if err := json.Unmarshal(body, &repos); err != nil {
+		return err
+	}
+
+	// Clone repositories
+	for _, v := range repos {
+		if v.Scm == "git" {
+			repo := fmt.Sprintf("git@bitbucket.org:%s/%s.git", v.Owner, v.Slug)
+			cmd := execCommand("git", "clone", "--mirror", repo)
+			cmd.Dir = backupPath
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				return err
+			}
+		}
+
+		// TODO: mercurial repositories
+	}
 
 	return nil
 }
-
-/*jq '.[]
-    | select(.scm == "git")
-    | "git@bitbucket.org:" + .owner + "/" + .slug + ".git"' bitbucket_index.json \
-    | xargs -P0 -n1 git clone --mirror
-
-# TODO: mercurial repos
-*/

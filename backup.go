@@ -54,7 +54,9 @@ func main() {
 	}
 
 	for _, t := range targets {
-		if err := sources[t](filepath.Join(*backupRoot, t)); err != nil {
+		backupPath := filepath.Join(*backupRoot, t)
+		os.MkdirAll(backupPath, os.ModePerm)
+		if err := sources[t](backupPath); err != nil {
 			log.Fatal(err)
 		}
 	}
