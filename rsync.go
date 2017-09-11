@@ -7,15 +7,15 @@ import (
 )
 
 func init() {
-	sources["dropbox"] = backupDropbox
+	sources["rsync"] = backupRsync
 }
 
-func backupDropbox(backupPath string) error {
+func backupRsync(backupPath string) error {
 	// This script is an adaptation of:
 	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (
 		date        = time.Now().UTC().Format("2006-01-02T15:04:05")
-		srcPath     = os.ExpandEnv("$HOME/Dropbox")
+		srcPath     = os.ExpandEnv("$HOME/Dropbox") // TODO: make not Dropbox-specific
 		datedPath   = filepath.Join(backupPath, date)
 		currentLink = filepath.Join(backupPath, "current")
 	)
@@ -23,7 +23,7 @@ func backupDropbox(backupPath string) error {
 	cmd := execCommand(
 		"rsync", "-avxP", "--stats",
 		"--delete-after", "--delete-excluded",
-		"--exclude", ".dropbox*",
+		"--exclude", ".dropbox*", // TODO: make not Dropbox-specific
 		"--link-dest="+currentLink,
 		srcPath, datedPath)
 	cmd.Stdout = os.Stdout
