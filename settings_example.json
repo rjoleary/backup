@@ -1,0 +1,13 @@
+{
+    "targets": {
+        "github": {
+            "username": "rjoleary",
+            "password": "ZzZzZzZz"
+        },
+        "dropbox": {
+            "source": "rsync",
+            "directory": "$HOME/Dropbox",
+            "args": "-avxP --stats --delete-after --delete-excluded --exclude '.dropbox*' --link-dest=$backup_path/current"
+        }
+    }
+}
