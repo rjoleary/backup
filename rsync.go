@@ -6,11 +6,21 @@ import (
 	"time"
 )
 
-func init() {
-	sources["rsync"] = backupRsync
+type rsyncSource struct{}
+
+type rsyncConfig struct {
+	directory, args string
 }
 
-func backupRsync(backupPath string) error {
+func init() {
+	sources["rsync"] = rsyncSource{}
+}
+
+func (rsyncSource) newConfig() interface{} {
+	return rsyncConfig{}
+}
+
+func (rsyncSource) backup(backupPath string, config interface{}) error {
 	// This script is an adaptation of:
 	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (

@@ -16,11 +16,21 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+type bitbucketSource struct{}
+
 func init() {
-	sources["bitbucket"] = backupBitbucket
+	sources["bitbucket"] = bitbucketSource{}
 }
 
-func backupBitbucket(backupPath string) error {
+type bitbucketConfig struct {
+	username, password string
+}
+
+func (bitbucketSource) newConfig() interface{} {
+	return bitbucketConfig{}
+}
+
+func (bitbucketSource) backup(backupPath string, config interface{}) error {
 	// Username
 	fmt.Print("Username: ")
 	reader := bufio.NewReader(os.Stdin)

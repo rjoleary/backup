@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -11,11 +12,28 @@ import (
 	"strings"
 )
 
-type backupFunc func(backupDir string) error
+type source interface {
+	// newConfig returns a new configuration struct to be filled in before
+	// passing to backupFunc.
+	newConfig() interface{}
 
-var sources = map[string]backupFunc{}
+	// backup performs the actual backup.
+	backup(backupPath string, config interface{}) error
+}
+
+type target struct {
+	sourceName string
+	config     interface{}
+}
+
+// sources is registered by individual source files.
+var sources = map[string]source{}
 
 var execCommand = exec.Command
+
+func parseConfig(r io.Reader) map[string]target {
+	return nil // TODO
+}
 
 func main() {
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -56,7 +74,7 @@ func main() {
 	for _, t := range targets {
 		backupPath := filepath.Join(*backupRoot, t)
 		os.MkdirAll(backupPath, os.ModePerm)
-		if err := sources[t](backupPath); err != nil {
+		if err := sources[t].backup(backupPath, sources[t].newConfig()); err != nil {
 			log.Fatal(err)
 		}
 	}
