@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,11 +17,12 @@ func init() {
 	sources["rsync"] = rsyncSource{}
 }
 
-func (rsyncSource) newConfig() interface{} {
-	return rsyncConfig{}
-}
+func (rsyncSource) backup(backupPath string, config json.RawMessage) error {
+	cfg := rsyncConfig{}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return err
+	}
 
-func (rsyncSource) backup(backupPath string, config interface{}) error {
 	// This script is an adaptation of:
 	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (

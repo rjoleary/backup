@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -12,18 +13,12 @@ import (
 	"strings"
 )
 
-type source interface {
-	// newConfig returns a new configuration struct to be filled in before
-	// passing to backupFunc.
-	newConfig() interface{}
-
-	// backup performs the actual backup.
-	backup(backupPath string, config interface{}) error
+type config struct {
+	Targets map[string]json.RawMessage `json:"targets"`
 }
 
-type target struct {
-	sourceName string
-	config     interface{}
+type source interface {
+	backup(backupPath string, config json.RawMessage) error
 }
 
 // sources is registered by individual source files.
@@ -31,8 +26,23 @@ var sources = map[string]source{}
 
 var execCommand = exec.Command
 
-func parseConfig(r io.Reader) map[string]target {
-	return nil // TODO
+func parseConfig(data []byte) (cfg config, err error) {
+	err = json.Unmarshal(data, &cfg)
+	return
+}
+
+func (c *config) getSourceName(target string, config json.RawMessage) (string, error) {
+	// Unmarshal enough of the json to get the source.
+	sourceStruct := struct {
+		Source *string `json:"source"`
+	}{}
+	if err := json.Unmarshal(config, &sourceStruct); err != nil {
+		return "", err
+	}
+	if sourceStruct.Source == nil {
+		return target, nil
+	}
+	return *sourceStruct.Source, nil
 }
 
 func main() {
@@ -41,11 +51,31 @@ func main() {
 		backupRoot = fs.String("backup_root", "", "root of the backup directory")
 		dryrun     = fs.Bool("dryrun", false, "print commands instead of executing them")
 		targetStr  = fs.String("targets", "", "comma separated list of targets")
+		configFile = fs.String("config_file", "", "location of configuration file")
 	)
 	fs.Parse(os.Args[1:])
 
 	if *backupRoot == "" {
 		log.Fatal("error: no backup_root")
+	}
+
+	//src, ok := sources[t.sourceName]
+	//if !ok {
+	//	return errors.New("bad source name") // TODO: error types
+	//}
+
+	// TODO: currently this is debug prints for testing
+	if *configFile != "" {
+		data, err := ioutil.ReadFile(*configFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfg, err := parseConfig(data)
+		if err != nil {
+			log.Fatal(err)
+		}
+		b, _ := json.MarshalIndent(&cfg, "", "\t")
+		fmt.Println(string(b))
 	}
 
 	if *dryrun {
@@ -74,7 +104,7 @@ func main() {
 	for _, t := range targets {
 		backupPath := filepath.Join(*backupRoot, t)
 		os.MkdirAll(backupPath, os.ModePerm)
-		if err := sources[t].backup(backupPath, sources[t].newConfig()); err != nil {
+		if err := sources[t].backup(backupPath, json.RawMessage{}); err != nil {
 			log.Fatal(err)
 		}
 	}

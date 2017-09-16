@@ -26,11 +26,12 @@ type bitbucketConfig struct {
 	username, password string
 }
 
-func (bitbucketSource) newConfig() interface{} {
-	return bitbucketConfig{}
-}
+func (bitbucketSource) backup(backupPath string, config json.RawMessage) error {
+	cfg := bitbucketConfig{}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return err
+	}
 
-func (bitbucketSource) backup(backupPath string, config interface{}) error {
 	// Username
 	fmt.Print("Username: ")
 	reader := bufio.NewReader(os.Stdin)
