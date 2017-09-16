@@ -12,3 +12,11 @@ times are in utc (time is recorded at the *start* of the backup)
 
 - rsync
 - jq
+
+## TODO
+
+- encrypt settings file for storing passwords
+- sources for:
+  - Github
+  - Gitlab
+  - Google Drive
