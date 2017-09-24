@@ -38,7 +38,7 @@ func readConfigFile(filename string) (config, error) {
 	return parseConfigFile(data)
 }
 
-func (c *config) getSourceName(target string, config json.RawMessage) (string, error) {
+func getSourceName(target string, config json.RawMessage) (string, error) {
 	// Unmarshal enough of the json to get the source.
 	sourceStruct := struct {
 		Source *string `json:"source"`
@@ -92,10 +92,31 @@ func main() {
 		}
 	}
 
+	for k, v := range cfg.Targets {
+		sourceName, err := getSourceName(k, v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if _, ok := sources[sourceName]; !ok {
+			contains := false
+			for _, t := range targets {
+				if k == t {
+					contains = true
+				}
+			}
+			if contains {
+				log.Fatalf("error: config contains unrecognized source %q", sourceName)
+			} else {
+				log.Printf("warning: config contains unrecognized source %q", sourceName)
+			}
+		}
+	}
+
 	for _, t := range targets {
 		backupPath := filepath.Join(*backupRoot, t)
 		os.MkdirAll(backupPath, os.ModePerm)
-		if err := sources[t].backup(backupPath, cfg.Targets[t]); err != nil {
+		sourceName, _ := getSourceName(t, cfg.Targets[t])
+		if err := sources[sourceName].backup(backupPath, cfg.Targets[t]); err != nil {
 			log.Fatal(err)
 		}
 	}

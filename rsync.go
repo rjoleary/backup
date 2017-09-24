@@ -10,7 +10,8 @@ import (
 type rsyncSource struct{}
 
 type rsyncConfig struct {
-	directory, args string
+	directory string
+	args      string
 }
 
 func init() {
@@ -27,7 +28,7 @@ func (rsyncSource) backup(backupPath string, config json.RawMessage) error {
 	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (
 		date        = time.Now().UTC().Format("2006-01-02T15:04:05")
-		srcPath     = os.ExpandEnv("$HOME/Dropbox") // TODO: make not Dropbox-specific
+		srcPath     = os.ExpandEnv(cfg.directory)
 		datedPath   = filepath.Join(backupPath, date)
 		currentLink = filepath.Join(backupPath, "current")
 	)
