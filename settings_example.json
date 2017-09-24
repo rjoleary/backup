@@ -1,8 +1,11 @@
 {
     "targets": {
+        "bitbucket": {
+            "username": "rjoleary"
+        },
         "github": {
             "username": "rjoleary",
-            "password": "ZzZzZzZz"
+            "password": "NICE_TRY"
         },
         "dropbox": {
             "source": "rsync",

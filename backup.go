@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -26,9 +25,17 @@ var sources = map[string]source{}
 
 var execCommand = exec.Command
 
-func parseConfig(data []byte) (cfg config, err error) {
+func parseConfigFile(data []byte) (cfg config, err error) {
 	err = json.Unmarshal(data, &cfg)
 	return
+}
+
+func readConfigFile(filename string) (config, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return config{}, err
+	}
+	return parseConfigFile(data)
 }
 
 func (c *config) getSourceName(target string, config json.RawMessage) (string, error) {
@@ -58,26 +65,9 @@ func main() {
 	if *backupRoot == "" {
 		log.Fatal("error: no backup_root")
 	}
-
-	//src, ok := sources[t.sourceName]
-	//if !ok {
-	//	return errors.New("bad source name") // TODO: error types
-	//}
-
-	// TODO: currently this is debug prints for testing
-	if *configFile != "" {
-		data, err := ioutil.ReadFile(*configFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cfg, err := parseConfig(data)
-		if err != nil {
-			log.Fatal(err)
-		}
-		b, _ := json.MarshalIndent(&cfg, "", "\t")
-		fmt.Println(string(b))
+	if *configFile == "" {
+		log.Fatal("error: config file required")
 	}
-
 	if *dryrun {
 		execCommand = func(cmd string, args ...string) *exec.Cmd {
 			line := make([]interface{}, len(args)+1)
@@ -90,13 +80,14 @@ func main() {
 		}
 	}
 
+	cfg, err := readConfigFile(*configFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	targets := strings.Split(*targetStr, ",")
-	alphanum := regexp.MustCompile("^[a-z]+$")
 	for _, t := range targets {
-		if !alphanum.Match([]byte(t)) {
-			log.Fatalf("error: non-alphanumeric target %q", t)
-		}
-		if _, ok := sources[t]; !ok {
+		if _, ok := cfg.Targets[t]; !ok {
 			log.Fatalf("error: unrecognized target %q", t)
 		}
 	}
@@ -104,7 +95,7 @@ func main() {
 	for _, t := range targets {
 		backupPath := filepath.Join(*backupRoot, t)
 		os.MkdirAll(backupPath, os.ModePerm)
-		if err := sources[t].backup(backupPath, json.RawMessage{}); err != nil {
+		if err := sources[t].backup(backupPath, cfg.Targets[t]); err != nil {
 			log.Fatal(err)
 		}
 	}

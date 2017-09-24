@@ -23,7 +23,33 @@ func init() {
 }
 
 type bitbucketConfig struct {
-	username, password string
+	Username, Password *string
+}
+
+func getUsername(cfg bitbucketConfig) (string, error) {
+	if cfg.Username != nil {
+		return *cfg.Username, nil
+	}
+
+	fmt.Print("Username: ")
+	reader := bufio.NewReader(os.Stdin)
+	username, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	username = strings.TrimSpace(username)
+	return username, nil
+}
+
+func getPassword(cfg bitbucketConfig) (string, error) {
+	if cfg.Password != nil {
+		return *cfg.Password, nil
+	}
+
+	fmt.Printf("Password: ")
+	password, err := terminal.ReadPassword(int(syscall.Stdin))
+	fmt.Println()
+	return string(password), err
 }
 
 func (bitbucketSource) backup(backupPath string, config json.RawMessage) error {
@@ -32,19 +58,12 @@ func (bitbucketSource) backup(backupPath string, config json.RawMessage) error {
 		return err
 	}
 
-	// Username
-	fmt.Print("Username: ")
-	reader := bufio.NewReader(os.Stdin)
-	username, err := reader.ReadString('\n')
+	username, err := getUsername(cfg)
 	if err != nil {
 		return err
 	}
-	username = strings.TrimSpace(username)
 
-	// Password
-	fmt.Printf("Password: ")
-	password, err := terminal.ReadPassword(int(syscall.Stdin))
-	fmt.Println()
+	password, err := getPassword(cfg)
 	if err != nil {
 		return err
 	}
