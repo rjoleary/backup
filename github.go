@@ -1,77 +1,82 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
+	//"bufio"
+	//"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
+	//"net/url"
+	//"os"
+	//"path/filepath"
+	//"strings"
 	"syscall"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-type bitbucketSource struct{}
+type githubSource struct{}
 
 func init() {
-	sources["bitbucket"] = bitbucketSource{}
+	sources["github"] = githubSource{}
 }
 
-type bitbucketConfig struct {
-	Username, Password *string
+type githubConfig struct {
+	Username, Token *string
 }
 
-func getUsername(defaultUsername *string) (string, error) {
-	if defaultUsername != nil {
-		return *defaultUsername, nil
+func getToken(cfg githubConfig) (string, error) {
+	if cfg.Token != nil {
+		return *cfg.Token, nil
 	}
 
-	fmt.Print("Username: ")
-	reader := bufio.NewReader(os.Stdin)
-	username, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	username = strings.TrimSpace(username)
-	return username, nil
-}
-
-func getPassword(defaultPassword *string) (string, error) {
-	if defaultPassword != nil {
-		return *defaultPassword, nil
-	}
-
-	fmt.Printf("Password: ")
-	password, err := terminal.ReadPassword(int(syscall.Stdin))
+	// TODO: strip whitespace
+	fmt.Printf("Token: ")
+	token, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
-	return string(password), err
+	return string(token), err
 }
 
-func (bitbucketSource) backup(backupPath string, config json.RawMessage) error {
-	cfg := bitbucketConfig{}
+func (githubSource) backup(backupPath string, config json.RawMessage) error {
+	cfg := githubConfig{}
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
 	}
 
+	// TODO: this is weirdly shared with bitbucket getUsername
 	username, err := getUsername(cfg.Username)
 	if err != nil {
 		return err
 	}
+	_ = username // TODO: username not used
 
-	password, err := getPassword(cfg.Password)
+	token, err := getToken(cfg)
 	if err != nil {
 		return err
 	}
 
 	// Download repository list
-	bbUrl := fmt.Sprintf(
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://api.github.com/user/repos", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", "token "+token)
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(body))
+
+	/*bbUrl := fmt.Sprintf(
 		"https://%s@api.bitbucket.org/1.0/user/repositories",
-		url.UserPassword(username, string(password)).String())
+		url.UserToken(username, string(token)).String())
 	resp, err := http.Get(bbUrl)
 	if err != nil {
 		return err
@@ -120,7 +125,7 @@ func (bitbucketSource) backup(backupPath string, config json.RawMessage) error {
 		}
 
 		// TODO: mercurial repositories
-	}
+	}*/
 
 	return nil
 }
