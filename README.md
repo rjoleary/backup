@@ -1,22 +1,35 @@
 # Backup
 
-Some friends were interested in how I do backups. Nothing special. Just a bunch
-of ad-hoc scripts.
+This repo contains Go scripts for personal backups.
 
-Disk format: LUKS + EXT4
-Disk Name: Backup
-sudo apt-get install cryptsetup
-times are in utc (time is recorded at the *start* of the backup)
+## Suggested settings for backup drive
+
+- Disk format: LUKS + EXT4
+  - `sudo apt-get install cryptsetup`
+- Disk Name: Backup
+- Times are in utc (time is recorded at the *start* of the backup)
 
 ## Dependencies
 
-- rsync
-- jq
+Dependencies depend on what you intend to backup.
+
+- `sudo apt-get install rsync git mercurial`
+
+## Supported sources
+
+Code repositories
+
+- `github`: Backup public and private repos using token authentication.
+  - Metadata (stars, ...)
+  - Git repositories
+- `bitbucket`: Backup public and private repos using password authentication.
+  - Metadata
+  - Git repositories
+  - Mercurial repositories
+- `gitlab`: TODO
+- `Google Drive`: TODO
+- `rsync`: Quickly sync files from source to destination.
 
 ## TODO
 
 - encrypt settings file for storing passwords
-- sources for:
-  - Github
-  - Gitlab
-  - Google Drive
