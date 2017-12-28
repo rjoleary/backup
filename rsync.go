@@ -10,8 +10,8 @@ import (
 type rsyncSource struct{}
 
 type rsyncConfig struct {
-	directory string
-	args      string
+	Directory string
+	Args      []string
 }
 
 func init() {
@@ -24,24 +24,21 @@ func (rsyncSource) backup(backupPath string, config json.RawMessage) error {
 		return err
 	}
 
-	// This script is an adaptation of:
-	//   http://blog.interlinked.org/tutorials/rsync_time_machine.html
 	var (
 		date        = time.Now().UTC().Format("2006-01-02T15:04:05")
-		srcPath     = os.ExpandEnv(cfg.directory)
+		srcPath     = os.ExpandEnv(cfg.Directory)
 		datedPath   = filepath.Join(backupPath, date)
 		currentLink = filepath.Join(backupPath, "current")
 	)
 
-	cmd := execCommand(
-		"rsync", "-avxP", "--stats",
-		"--delete-after", "--delete-excluded",
-		"--exclude", ".dropbox*", // TODO: make not Dropbox-specific
-		"--link-dest="+currentLink,
-		srcPath, datedPath)
+	args := append(cfg.Args, "--link-dest="+currentLink, srcPath, datedPath)
+	cmd := execCommand("rsync", args...)
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
 
 	// TODO:
 	//rm -f $backup_path/current
