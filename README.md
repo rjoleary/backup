@@ -1,6 +1,6 @@
 # Backup
 
-This repo contains Go scripts for personal backups.
+This repo contains scripts for personal backups.
 
 ## Suggested settings for backup drive
 
@@ -15,7 +15,56 @@ Dependencies depend on what you intend to backup.
 
 - `sudo apt-get install rsync git mercurial`
 
+## Arguments
+
+`backup -f CONFIG SOURCES... TARGET`
+
+- `-f FILENAME`: Specify configuration file
+
+## Configuration
+
+    {
+      "sources": {
+        "dropbox": "$HOME/Dropbox"
+      },
+      "target": {
+        "/media/ryan
+      }
+      "recipes": {
+        "rsync": {
+          "type": "command",
+          "args": [
+            "rsync",
+            "-avxP",
+            "--stats",
+            "--delete-after",
+            "--delete-excluded",
+            "--exclude",
+            ".dropbox*"
+          ]
+        }
+      }
+    }
+
 ## Supported sources
+
+### Shell
+
+- `source`:
+
+
+For example, this syncs the user's Dropbox directory to the destination:
+
+### Command
+
+
+### github
+
+
+### bitbucket
+
+
+## TODO
 
 Code repositories
 
