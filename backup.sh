@@ -2,10 +2,10 @@
 
 set -eu
 
-BACKUP=$HOME/backup-tools
+BACKUP=$(dirname -- "$0")
 TIMESTAMP=$(date '+%Y%m%dT%H%M%S')
-SRC=*
-DEST=${DEST-/media/ryan/backup}
+SRC=${SRC-*}
+DEST=$(readlink --canonicalize ${DEST-/media/ryan/backup})
 
 
 # Check that $DEST is mounted.
@@ -27,32 +27,36 @@ fi
 
 ########## Dropbox ##########
 if [ "$SRC" = 'dropbox' -o "$SRC" = '*' ]; then
-    rsync
-        --archive          # Recursive and preserve almost everything
-        --verbose          # List files being copied
-        --progress         # Print progress bar
-        --one-file-sytem   # Don't cross filesystem boundaries
-        --partial          # Keep partially transferred files
-        --stats            # Print stats afterwards
-        --delete-after     # Delete after all files have been transferred
-        --delete-excluded  # Exclude some files from being deleted
-        --exclude .dropbox # Exclude dropbox metadata
-        --link-dest="$DEST/dropbox/current"
-        "$HOME/Dropbox/"   # Trailing slash makes a difference
+    mkdir -p -- "$DEST/dropbox"
+    rsync                                                                   \
+        --archive          `# Recursive and preserve almost everything`     \
+        --verbose          `# List files being copied`                      \
+        --progress         `# Print progress bar`                           \
+        --one-file-system  `# Don't cross filesystem boundaries`            \
+        --partial          `# Keep partially transferred files`             \
+        --stats            `# Print stats afterwards`                       \
+        --delete-after     `# Delete after all files have been transferred` \
+        --delete-excluded  `# Exclude some files from being deleted`        \
+        --exclude .dropbox `# Exclude dropbox metadata`                     \
+        --link-dest="$DEST/dropbox/current"                                 \
+        --                                                                  \
+        "$HOME/Dropbox/"   `# Trailing slash makes a difference`            \
         "$DEST/dropbox/$TIMESTAMP"
 
     # Update current link for the next --link-dest backup.
-    ln -sf "$DEST/dropbox/$DATE" "$DEST/dropbox/current"
+    ln -sf -- "$DEST/dropbox/$TIMESTAMP" "$DEST/dropbox/current"
 fi
 
 
 ########## Github ##########
 if [ "$SRC" = 'github' -o "$SRC" = '*' ]; then
-    go run "$BACKUP/cmds/github.go"
+    mkdir -p -- "$DEST/github"
+    go run -- "$BACKUP/cmd/scmbackup.go" -dest="$DEST/github"
 fi
 
 
 ########## Bitbucket ##########
 if [ "$SRC" = 'bitbucket' -o "$SRC" = '*' ]; then
-    go run "$BACKUP/cmds/bitbucket.go"
+    mkdir -p -- "$DEST/bitbucket"
+    go run -- "$BACKUP/cmd/scmbackup.go" -dest="$DEST/bitbucket"
 fi
