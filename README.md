@@ -11,74 +11,62 @@ This repo contains scripts for personal backups.
 
 ## Dependencies
 
-Dependencies depend on what you intend to backup.
+Depending on which script you run:
 
-- `sudo apt-get install rsync git mercurial`
+- `rsync`, `git`, `hg` (mercurial)
 
-## Arguments
+## Scripts
 
-`backup -f CONFIG SOURCES... TARGET`
+- `backup.sh` does the actual backup.
+- `update_index.sh` updates the list of SCM repositories downloaded from
+  Github/Bitbucket/Gitlab APIs.
 
-- `-f FILENAME`: Specify configuration file
+The following environment variables can be overriden:
 
-## Configuration
+- `SRC`: What to backup. See the sources section below. (default: `*`)
+- `DEST`: Where to backup. (default: "/media/$USER/Backup")
+- `BACKUP`: The directory of this
+- `TIMESTAMP`: The timestamp used for snapshots. (default: `$(date '+%Y%m%dT%H%M%S')`)
 
-    {
-      "sources": {
-        "dropbox": "$HOME/Dropbox"
-      },
-      "target": {
-        "/media/ryan
-      }
-      "recipes": {
-        "rsync": {
-          "type": "command",
-          "args": [
-            "rsync",
-            "-avxP",
-            "--stats",
-            "--delete-after",
-            "--delete-excluded",
-            "--exclude",
-            ".dropbox*"
-          ]
-        }
-      }
-    }
+For best results, run `ssh-add ~/.ssh/<your github key>` before running the
+backup; otherwise, you will be prompted for your passphrase multiple times.
 
-## Supported sources
+## Sources
 
-### Shell
+- `dropbox`
+  - Source: `$HOME/Dropbox`
+  - Dest:   `$DEST/dropbox/$TIMESTAMP/`
+- `keys`
+  - Source: `$HOME/.ssh`
+  - Dest:   `$DEST/dropbox/$TIMESTAMP/`
+- `firefox`
+  - Source: `$HOME/.mozilla/firefox/*.default/`
+  - Dest:   `$DEST/firefox/$TIMESTAMP/*.default/`
+- `github`
+  - Source: Clone/pull repositories listed in the index `$DEST/github/index.json`.
+  - Dest:   `$DEST/github/**/`
+- `bitbucket`
+  - Source: Clone/pull repositories listed in the index `$DEST/bitbucket/index.json`.
+  - Dest:   `$DEST/bitbucket/**/`
 
-- `source`:
-
-
-For example, this syncs the user's Dropbox directory to the destination:
-
-### Command
-
-
-### github
-
-
-### bitbucket
-
+Note: git repositories are headless mirrors with garbage collection turned off.
 
 ## TODO
 
-Code repositories
+High priority:
 
-- `github`: Backup public and private repos using token authentication.
-  - Metadata (stars, ...)
-  - Git repositories
-- `bitbucket`: Backup public and private repos using password authentication.
-  - Metadata
-  - Git repositories
-  - Mercurial repositories
-- `gitlab`: TODO
-- `Google Drive`: TODO
-- `rsync`: Quickly sync files from source to destination.
+- Make per-machine repos for keys and firefox profiles
+- Remote backups
+- Cron
+- Google Drive
+- Canaries and restore
 
-## TODO
+Low priority:
 
-- encrypt settings file for storing passwords
+- gitlab repos
+- github/bitbucket metadata (stars, ...)
+- hg repos
+- Explain how hard links work
+- Wait for dropbox to be synced before starting backup
+- Full home directory backup
+- Make sure times are in UTC

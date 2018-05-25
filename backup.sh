@@ -5,7 +5,7 @@ set -eu
 BACKUP=$(dirname -- "$0")
 TIMESTAMP=$(date '+%Y%m%dT%H%M%S')
 SRC=${SRC-*}
-DEST=$(readlink --canonicalize ${DEST-/media/ryan/Backup})
+DEST=$(readlink --canonicalize ${DEST-/media/$USER/Backup})
 
 
 # Check that $DEST is mounted.
