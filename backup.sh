@@ -51,12 +51,14 @@ fi
 ########## Github ##########
 if [ "$SRC" = 'github' -o "$SRC" = '*' ]; then
     mkdir -p -- "$DEST/github"
-    go run -- "$BACKUP/cmd/scmbackup.go" -dest="$DEST/github"
+    go run -- "$BACKUP/cmd/scmbackup.go" \
+        -dest "$DEST/github"
 fi
 
 
 ########## Bitbucket ##########
 if [ "$SRC" = 'bitbucket' -o "$SRC" = '*' ]; then
     mkdir -p -- "$DEST/bitbucket"
-    go run -- "$BACKUP/cmd/scmbackup.go" -dest="$DEST/bitbucket"
+    go run -- "$BACKUP/cmd/scmbackup.go" \
+        -dest "$DEST/bitbucket"
 fi

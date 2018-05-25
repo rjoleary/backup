@@ -183,7 +183,18 @@ func backup(repos []repo, dest string) error {
 			cmd.Dir = dir
 			out, _ := cmd.Output()
 
-			if string(out) == "." {
+			if strings.TrimSpace(string(out)) == "." {
+				// Repo already exists. Update.
+				cmd := exec.Command("git", "remote", "update")
+				cmd.Dir = dir
+				cmd.Stdin = os.Stdin
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Run(); err != nil {
+					return err
+				}
+
+			} else {
 				// Repo is new. Clone for the first time.
 				cmd = exec.Command("git", "clone", "--mirror", r.Url, ".")
 				cmd.Dir = dir
@@ -198,17 +209,6 @@ func backup(repos []repo, dest string) error {
 				// deleted from git (deleted branch or a force push), the
 				// backups will still contain those lost commits.
 				cmd = exec.Command("git", "config", "gc.auto", "0")
-				cmd.Dir = dir
-				cmd.Stdin = os.Stdin
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				if err := cmd.Run(); err != nil {
-					return err
-				}
-
-			} else {
-				// Repo already exists. Update.
-				cmd := exec.Command("git", "remote", "update")
 				cmd.Dir = dir
 				cmd.Stdin = os.Stdin
 				cmd.Stdout = os.Stdout
@@ -233,8 +233,10 @@ func main() {
 	)
 	fs.Parse(os.Args[1:])
 
-	if *dest == "" {
-		log.Fatal("dest argument is required")
+	// TODO: change synopsis to:
+	//    scmbackup [ backup | index ] [ OPTIONS ... ]
+	if *dest == "" && *update == "" {
+		log.Fatal("dest or update argument is required")
 	}
 
 	// Default index
