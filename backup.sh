@@ -25,9 +25,7 @@ if [ ! -d "$DEST" ]; then
 fi
 
 
-########## Dropbox ##########
-if [ "$SRC" = 'dropbox' -o "$SRC" = '*' ]; then
-    mkdir -p -- "$DEST/dropbox"
+rsync_snapshot() {
     rsync                                                                   \
         --archive          `# Recursive and preserve almost everything`     \
         --verbose          `# List files being copied`                      \
@@ -38,13 +36,27 @@ if [ "$SRC" = 'dropbox' -o "$SRC" = '*' ]; then
         --delete-after     `# Delete after all files have been transferred` \
         --delete-excluded  `# Exclude some files from being deleted`        \
         --exclude .dropbox `# Exclude dropbox metadata`                     \
-        --link-dest="$DEST/dropbox/current"                                 \
+        --link-dest="$2/current"                                            \
         --                                                                  \
-        "$HOME/Dropbox/"   `# Trailing slash makes a difference`            \
-        "$DEST/dropbox/$TIMESTAMP"
+        "$1"               `# Trailing slash makes a difference`            \
+        "$2/$TIMESTAMP"
 
     # Update current link for the next --link-dest backup.
-    ln -sf -- "$DEST/dropbox/$TIMESTAMP" "$DEST/dropbox/current"
+    ln -sf -- "$2/$TIMESTAMP" "$2/current"
+}
+
+
+########## Dropbox ##########
+if [ "$SRC" = 'dropbox' -o "$SRC" = '*' ]; then
+    mkdir -p -- "$DEST/dropbox"
+    rsync_snapshot "$HOME/Dropbox/" "$DEST/dropbox"
+fi
+
+
+########## Keys ##########
+if [ "$SRC" = 'keys' -o "$SRC" = '*' ]; then
+    mkdir -p -- "$DEST/keys/ssh"
+    rsync_snapshot "$HOME/.ssh/" "$DEST/keys/ssh"
 fi
 
 
