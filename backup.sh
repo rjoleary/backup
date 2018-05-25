@@ -49,6 +49,7 @@ rsync_snapshot() {
 ########## Dropbox ##########
 if [ "$SRC" = 'dropbox' -o "$SRC" = '*' ]; then
     mkdir -p -- "$DEST/dropbox"
+    # TODO: check that dropbox status is up to date before starting a backup
     rsync_snapshot "$HOME/Dropbox/" "$DEST/dropbox"
 fi
 
@@ -57,6 +58,20 @@ fi
 if [ "$SRC" = 'keys' -o "$SRC" = '*' ]; then
     mkdir -p -- "$DEST/keys/ssh"
     rsync_snapshot "$HOME/.ssh/" "$DEST/keys/ssh"
+fi
+
+
+########## Firefox ##########
+if [ "$SRC" = 'firefox' -o "$SRC" = '*' ]; then
+    mkdir -p -- "$DEST/firefox"
+    if [ -n "$(pidof firefox)" ]; then
+        echo "ERROR: firefox is running"
+        exit 1
+    fi
+
+    for FF_PROFILE in "$HOME"/.mozilla/firefox/*.default; do
+        rsync_snapshot "$FF_PROFILE" "$DEST/firefox"
+    done
 fi
 
 
