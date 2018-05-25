@@ -39,6 +39,7 @@ type repo struct {
 }
 
 func getToken() (string, error) {
+	fmt.Print("Token: ")
 	token, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
 	return strings.TrimSpace(string(token)), err
@@ -63,12 +64,6 @@ func getPassword() (string, error) {
 }
 
 func updateGithub() ([]repo, error) {
-	username, err := getUsername()
-	if err != nil {
-		return nil, err
-	}
-	_ = username // TODO: username not used
-
 	token, err := getToken()
 	if err != nil {
 		return nil, err
@@ -90,9 +85,31 @@ func updateGithub() ([]repo, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(body))
 
-	return nil, nil // TODO: read body
+	// Parse json
+	ghRepos := []struct {
+		FullName string `json:"full_name"`
+		Private  bool   `json:"private"`
+		CloneUrl string `json:"clone_url"`
+		SshUrl   string `json:"ssh_url"`
+	}{}
+	if err := json.Unmarshal(body, &ghRepos); err != nil {
+		if len(body) < 80 {
+			log.Print("Invalid JSON: ", string(body))
+		}
+		return nil, err
+	}
+
+	// Convert to repo type
+	repos := make([]repo, len(ghRepos))
+	for i, _ := range ghRepos {
+		repos[i].Scm = "git"
+		repos[i].Dir = ghRepos[i].FullName
+		repos[i].Url = ghRepos[i].SshUrl
+		repos[i].Protocol = "ssh"
+		repos[i].Private = ghRepos[i].Private
+	}
+	return repos, nil
 }
 
 func updateBitbucket() ([]repo, error) {
