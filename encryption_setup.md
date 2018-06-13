@@ -19,7 +19,7 @@
 ## Closing
 
     sudo umount backup
-    sudo cryptsetup luksClose backup.luks
+    sudo cryptsetup luksClose backup
 
 ## Status
 
