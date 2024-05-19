@@ -4,6 +4,7 @@ go 1.22.2
 
 require (
 	cloud.google.com/go/storage v1.40.0
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/schollz/progressbar/v3 v3.14.2
 	golang.org/x/crypto v0.22.0
